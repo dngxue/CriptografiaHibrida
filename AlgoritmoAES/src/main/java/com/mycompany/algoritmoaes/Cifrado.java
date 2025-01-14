@@ -88,25 +88,20 @@ public class Cifrado {
     
     private static PrivateKey cargarLlavePrivada(File archivoLlavePrivada) throws Exception {
         byte[] keyBytes = Files.readAllBytes(archivoLlavePrivada.toPath());
-        String llavePEM = new String(keyBytes);
+        String llaveBase64 = new String(keyBytes);
 
-        // Elimina encabezados y pies de página
-        llavePEM = llavePEM.replace("-----BEGIN PRIVATE KEY-----", "")
-                           .replace("-----END PRIVATE KEY-----", "")
-                           .replaceAll("\\s+", ""); // Quita espacios y saltos de línea
-        System.out.println("Contenido Base64 limpio:");
-        System.out.println(llavePEM);
         try {
-            byte[] llaveDecodificada = Base64.getDecoder().decode(llavePEM);
-            System.out.println("La llave se decodifico correctamente.");
+            byte[] llaveDecodificada = Base64.getDecoder().decode(llaveBase64);
+            System.out.println("La llave se decodificó correctamente.");
+
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(llaveDecodificada);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePrivate(keySpec);
-            
-        }catch (IllegalArgumentException e) {
+
+        } catch (IllegalArgumentException e) {
             System.err.println("Error al decodificar la llave: " + e.getMessage());
-              throw e;
-        }    
+            throw e;
+        }     
     }
     
     private static byte[] cifrarRSA(byte[] datos, PrivateKey llavePrivada) throws Exception {

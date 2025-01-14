@@ -23,16 +23,9 @@ public class GenerarLlave {
     
     private void saveKeyToFile(String fileName, byte[] keyBytes) throws IOException {
         String keyBase64 = Base64.getEncoder().encodeToString(keyBytes);
-        String keyPEM = "";
-        
-        if (fileName.contains("privateKey")) {
-            keyPEM = "-----BEGIN PRIVATE KEY-----\n" + keyBase64 + "\n-----END PRIVATE KEY-----\n";
-        } else if (fileName.contains("publicKey")) {
-            keyPEM = "-----BEGIN PUBLIC KEY-----\n" + keyBase64 + "\n-----END PUBLIC KEY-----\n";
-        }
-        
+
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
-            fos.write(keyPEM.getBytes());
+            fos.write(keyBase64.getBytes());
         }
     }
 }
