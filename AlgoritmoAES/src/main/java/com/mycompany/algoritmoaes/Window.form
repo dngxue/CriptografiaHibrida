@@ -26,11 +26,13 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="81" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Component id="btnCifrar" max="32767" attributes="0"/>
-                  <Component id="btnSecretoCompartido" alignment="0" pref="288" max="32767" attributes="0"/>
+                  <Component id="bntGenerarLlaves" pref="288" max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="btnLlaveParcial" pref="288" max="32767" attributes="0"/>
+                      <Component id="btnCifrar" max="32767" attributes="0"/>
+                      <Component id="btnSecretoCompartido" alignment="0" pref="288" max="32767" attributes="0"/>
+                      <Component id="btnLlaveParcial" max="32767" attributes="0"/>
                       <Component id="btnGenerarParametro" max="32767" attributes="0"/>
+                      <Component id="btnDescifrar" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace pref="89" max="32767" attributes="0"/>
@@ -48,7 +50,11 @@
               <Component id="btnSecretoCompartido" min="-2" pref="40" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="btnCifrar" min="-2" pref="40" max="-2" attributes="0"/>
-              <EmptySpace pref="124" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="btnDescifrar" min="-2" pref="40" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="bntGenerarLlaves" min="-2" pref="40" max="-2" attributes="0"/>
+              <EmptySpace pref="20" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -84,6 +90,22 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCifrarActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnDescifrar">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Descifrar"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDescifrarActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="bntGenerarLlaves">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Generar llaves privada y p&#xfa;blica"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bntGenerarLlavesActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

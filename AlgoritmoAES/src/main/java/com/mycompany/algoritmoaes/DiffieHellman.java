@@ -3,12 +3,14 @@ package com.mycompany.algoritmoaes;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.util.Arrays;
 import javax.crypto.interfaces.DHPrivateKey;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.swing.JFileChooser;
@@ -108,25 +110,25 @@ public class DiffieHellman {
         return g.modPow(llavePrivada, p);
     }
 
-    public static BigInteger calcularLlaveCompartida(BigInteger p, BigInteger llaveParcial, BigInteger llavePrivada, String nombre) throws IOException {
+    public static void calcularLlaveCompartida(BigInteger p, BigInteger llaveParcial, BigInteger llavePrivada, String nombre) throws IOException {
         String carpeta = "llaveSecreta";
 
         File directorio = new File(carpeta);
         if (!directorio.exists()) {
             if (!directorio.mkdir()) {
                 System.err.println("No se pudo crear la carpeta: " + carpeta);
-                return null;
+                return;
             }
         }
         
-        /* Archivo con llave compartida */
+        /* Archivo con llave secreta */
         String nombreArchivo = carpeta + File.separator + "llaveSecreta" + nombre + ".txt";
-        BigInteger llaveCompartida = llaveParcial.modPow(llavePrivada, p);
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(nombreArchivo))) {
-            writer.write(llaveCompartida.toString(16));
-        }
+        BigInteger llaveSecreta = llaveParcial.modPow(llavePrivada, p);
+        byte[] llaveBytes = llaveSecreta.toByteArray();
+        byte[] llaveFija = Arrays.copyOf(llaveBytes, 16);
         
-        return llaveParcial.modPow(llavePrivada, p);
+        try (FileOutputStream fos = new FileOutputStream(nombreArchivo)) {
+            fos.write(llaveFija);
+        }
     }
 }

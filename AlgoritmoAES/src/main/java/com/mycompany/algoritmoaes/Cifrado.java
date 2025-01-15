@@ -9,6 +9,7 @@ import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -17,7 +18,7 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFileChooser;
 
 public class Cifrado {
-    public static void ejecutar() {
+    public static void ejecutar(String user) {
         try {
             File archivo = seleccionarArchivo("Selecciona un archivo txt para cifrar");
             
@@ -38,20 +39,35 @@ public class Cifrado {
                     
                     System.out.println("Firma digital: " + firmaDigital);
                     
-                    guardarFirmaDigital(digestoCifrado);
+                    // guardarFirmaDigital(digestoCifrado);
+                    
                     /* ----------------- CIFRAR MENSAJE CON AES CBC ----------------- */
-                    // También dijo que se podía usar CRC, pero lo dejo en CBC
-                    File archivoVI = seleccionarArchivo("Seleccionar archivo del vector de inicialización");
+                    File archivoVI = seleccionarArchivo("Seleccionar archivo de la llave secreta");
                     
                     if (archivoVI != null) {
-                        byte[] vectorInicializacion = Files.readAllBytes(archivoVI.toPath());
-                        SecretKey llaveAES = new SecretKeySpec(vectorInicializacion, 0, 16, "AES");
-                        byte[] mensajeCifrado = cifrarAES(contenidoArchivo, llaveAES, vectorInicializacion);
+                        byte[] llaveSecretaBytes = Files.readAllBytes(archivoVI.toPath());
                         
-                        try (BufferedWriter writer = new BufferedWriter(new FileWriter("MensajeCifrado.txt"))) {
-                            writer.write(bytesAHex(mensajeCifrado));
+                        byte[] claveAES = derivarClaveAES(llaveSecretaBytes, 16);
+                        SecretKeySpec llaveAES = new SecretKeySpec(claveAES, "AES");
+                        System.out.println(Arrays.toString(claveAES));
+                        byte[] vi = Arrays.copyOf(llaveSecretaBytes, 16);
+                        
+                        byte[] mensajeCifrado = cifrarAES(contenidoArchivo, llaveAES, vi);
+                        
+                        File folder = new File("mensajesCifrados");
+                        if (!folder.exists()) {
+                            folder.mkdir();
                         }
-       
+                        
+                        String filePath = "mensajesCifrados/MensajeCifrado_" + user + ".txt";
+                        
+                        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                            writer.write("FIRMA DIGITAL:\n");
+                            writer.write(firmaDigital);
+                            writer.write("\n\nMENSAJE CIFRADO:\n");
+                            writer.write(bytesAHex(mensajeCifrado));
+                            System.out.println("El mensaje cifrado se guardó correctamente en: " + filePath);
+                        }
                         System.out.println("Mensaje cifrado (AES CBC): " + bytesAHex(mensajeCifrado));
                     }else {
                         System.out.println("No se selecciono el archivo del vector de inicialización.");
@@ -135,5 +151,11 @@ public class Cifrado {
         try (FileOutputStream fos = new FileOutputStream(nombreArchivo)) {
             fos.write(firmaDigital);
         }
+    }
+    
+    private static byte[] derivarClaveAES(byte[] llaveSecreta, int longitudClave) throws Exception {
+        MessageDigest digesto = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digesto.digest(llaveSecreta);
+        return Arrays.copyOf(hash, longitudClave);
     }
 }

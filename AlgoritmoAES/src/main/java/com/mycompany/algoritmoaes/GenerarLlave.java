@@ -1,5 +1,6 @@
 package com.mycompany.algoritmoaes;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyPair;
@@ -16,9 +17,14 @@ public class GenerarLlave {
         KeyPair keyPair = keyGen.generateKeyPair();
         PublicKey publicKey = keyPair.getPublic();
         PrivateKey privateKey = keyPair.getPrivate();
-
-        saveKeyToFile(name + "_publicKey", publicKey.getEncoded());
-        saveKeyToFile(name + "_privateKey", privateKey.getEncoded());
+        
+        File folder = new File("LlavesRSA");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+        
+        saveKeyToFile("LlavesRSA/" + name + "_publicKey", publicKey.getEncoded());
+        saveKeyToFile("LlavesRSA/" + name + "_privateKey", privateKey.getEncoded());
     }
     
     private void saveKeyToFile(String fileName, byte[] keyBytes) throws IOException {
