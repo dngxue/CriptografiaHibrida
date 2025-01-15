@@ -26,7 +26,8 @@ public class Descifrado {
                
                 if (archivoLlavePublica != null) {
                     PublicKey llavePublica = cargarLlavePublica(archivoLlavePublica);
-                     byte[] digestoDescifrado = descifrarRSA(contenidoFirma, llavePublica);
+                    /* ------------------- GENERAR EL DIGESTO CON FIRMA DIGITAL Y LLAVE PÚBLICA  ------------------- */
+                    byte[] digestoDescifrado = descifrarRSA(contenidoFirma, llavePublica);
                     System.out.println("Digesto con SHA-256: " + bytesAHex(digestoDescifrado));
                     /* Para verificar que los digestos coinciden. Debemos abrir el mensaje original */
                     // verificarFirmaDigital(mensaje, contenidoFirma, llavePublica);                     

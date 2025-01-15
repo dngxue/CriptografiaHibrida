@@ -1,4 +1,10 @@
+com\mycompany\algoritmoaes\Window.class
 com\mycompany\algoritmoaes\AlgoritmoAES.class
+com\mycompany\algoritmoaes\Window$1.class
+com\mycompany\algoritmoaes\Window$2.class
+com\mycompany\algoritmoaes\Window$4.class
+com\mycompany\algoritmoaes\GenerarLlave.class
+com\mycompany\algoritmoaes\Window$3.class
 com\mycompany\algoritmoaes\Cifrado.class
 com\mycompany\algoritmoaes\Descifrado.class
-com\mycompany\algoritmoaes\GenerarLlave.class
+com\mycompany\algoritmoaes\DiffieHellman.class

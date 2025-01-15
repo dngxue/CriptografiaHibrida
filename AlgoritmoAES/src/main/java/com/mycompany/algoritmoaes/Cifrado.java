@@ -1,7 +1,9 @@
 package com.mycompany.algoritmoaes;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -11,6 +13,7 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFileChooser;
 
 public class Cifrado {
@@ -38,18 +41,21 @@ public class Cifrado {
                     guardarFirmaDigital(digestoCifrado);
                     /* ----------------- CIFRAR MENSAJE CON AES CBC ----------------- */
                     // También dijo que se podía usar CRC, pero lo dejo en CBC
-                    /* File archivoVI = seleccionarArchivo("Seleccionar archivo del vector de inicialización");
+                    File archivoVI = seleccionarArchivo("Seleccionar archivo del vector de inicialización");
                     
                     if (archivoVI != null) {
                         byte[] vectorInicializacion = Files.readAllBytes(archivoVI.toPath());
                         SecretKey llaveAES = new SecretKeySpec(vectorInicializacion, 0, 16, "AES");
-                        byte[] mensajeCifrado = cifrarAES(contenidoArchivo.getBytes(), llaveAES, vectorInicializacion);
+                        byte[] mensajeCifrado = cifrarAES(contenidoArchivo, llaveAES, vectorInicializacion);
                         
+                        try (BufferedWriter writer = new BufferedWriter(new FileWriter("MensajeCifrado.txt"))) {
+                            writer.write(bytesAHex(mensajeCifrado));
+                        }
+       
                         System.out.println("Mensaje cifrado (AES CBC): " + bytesAHex(mensajeCifrado));
                     }else {
                         System.out.println("No se selecciono el archivo del vector de inicialización.");
                     }
-                    */
                     
                 }else {
                     System.out.println("No se selecciono el archivo de llave privada.");
