@@ -1,6 +1,7 @@
 package com.mycompany.algoritmoaes;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -10,7 +11,6 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFileChooser;
 
 public class Cifrado {
@@ -19,25 +19,26 @@ public class Cifrado {
             File archivo = seleccionarArchivo("Selecciona un archivo txt para cifrar");
             
             if (archivo != null) {
-                String contenidoArchivo = new String(Files.readAllBytes(archivo.toPath()));
+                byte[] contenidoArchivo = Files.readAllBytes(archivo.toPath());
                 
                 /* ------------------- GENERAR UN DIGESTO ------------------- */
-                String digesto = generarDigesto(contenidoArchivo, "SHA-256");
-                System.out.println("Digesto con SHA-256: " + digesto);
+                byte[] digesto = generarDigesto(contenidoArchivo, "SHA-256");
+                System.out.println("Digesto con SHA-256: " + bytesAHex(digesto));
                 
                 /* ----------------- GENERAR FIRMA DIGITAL ----------------- */
                 File archivoLlavePrivada = seleccionarArchivo("Seleccionar archivo de llave privada");
                 
                 if (archivoLlavePrivada != null) {
                     PrivateKey llavePrivada = cargarLlavePrivada(archivoLlavePrivada);
-                    byte[] digestoCifrado = cifrarRSA(digesto.getBytes(), llavePrivada); // Firma digital
+                    byte[] digestoCifrado = cifrarRSA(digesto, llavePrivada); // Firma digital
                     String firmaDigital = bytesAHex(digestoCifrado);
                     
                     System.out.println("Firma digital: " + firmaDigital);
                     
+                    guardarFirmaDigital(digestoCifrado);
                     /* ----------------- CIFRAR MENSAJE CON AES CBC ----------------- */
                     // También dijo que se podía usar CRC, pero lo dejo en CBC
-                    File archivoVI = seleccionarArchivo("Seleccionar archivo del vector de inicialización");
+                    /* File archivoVI = seleccionarArchivo("Seleccionar archivo del vector de inicialización");
                     
                     if (archivoVI != null) {
                         byte[] vectorInicializacion = Files.readAllBytes(archivoVI.toPath());
@@ -46,15 +47,16 @@ public class Cifrado {
                         
                         System.out.println("Mensaje cifrado (AES CBC): " + bytesAHex(mensajeCifrado));
                     }else {
-                        System.out.println("No se seleccionó el archivo del vector de inicialización.");
+                        System.out.println("No se selecciono el archivo del vector de inicialización.");
                     }
+                    */
                     
                 }else {
-                    System.out.println("No se seleccionó el archivo de llave privada.");
+                    System.out.println("No se selecciono el archivo de llave privada.");
                 }
                 
             }else {
-                System.out.println("No se seleccionó el archivo txt a cifrar.");
+                System.out.println("No se selecciono el archivo txt a cifrar.");
             }
             
         }catch (Exception e) {
@@ -72,18 +74,11 @@ public class Cifrado {
         return null;
     }
     
-    private static String generarDigesto(String contenidoArchivo, String algoritmo) throws Exception {
-        MessageDigest digesto = MessageDigest.getInstance(algoritmo);
-        byte[] hashBytes = digesto.digest(contenidoArchivo.getBytes());
-        StringBuilder hexString = new StringBuilder();
+    private static byte[] generarDigesto(byte[] contenidoArchivo, String algoritmo) throws Exception {
+        MessageDigest mensajeDigesto = MessageDigest.getInstance(algoritmo);
+        byte[] digesto = mensajeDigesto.digest(contenidoArchivo);
         
-        for (byte b : hashBytes) {
-            String h = Integer.toHexString(0xff & b);
-            if (h.length() == 1)
-                hexString.append('0');
-            hexString.append(h);
-        }
-        return hexString.toString();
+        return digesto;
     }
     
     private static PrivateKey cargarLlavePrivada(File archivoLlavePrivada) throws Exception {
@@ -92,7 +87,7 @@ public class Cifrado {
 
         try {
             byte[] llaveDecodificada = Base64.getDecoder().decode(llaveBase64);
-            System.out.println("La llave se decodificó correctamente.");
+            // System.out.println("La llave se decodifico correctamente.");
 
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(llaveDecodificada);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -126,5 +121,13 @@ public class Cifrado {
             hexString.append(h);
         }
         return hexString.toString();
+    }
+    
+    private static void guardarFirmaDigital(byte[] firmaDigital) throws Exception {
+        String nombreArchivo = "Firma_digital";
+
+        try (FileOutputStream fos = new FileOutputStream(nombreArchivo)) {
+            fos.write(firmaDigital);
+        }
     }
 }
