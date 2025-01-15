@@ -15,75 +15,94 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 public class Descifrado {
+    
     public static void ejecutar(String user) {
         try {
-            File firmaDigital = seleccionarArchivo("Selecciona el archivo de firma digital");
+            File archivoEntrada = seleccionarArchivo("Selecciona el archivo que contiene la firma digital y el mensaje cifrado");
             
-            if (firmaDigital != null) {
-                byte[] contenidoFirma = Files.readAllBytes(firmaDigital.toPath());
-                System.out.println("Firma digital: " + bytesAHex(contenidoFirma));
+            if (archivoEntrada != null) {
+                String contenidoArchivo = Files.readString(archivoEntrada.toPath(), StandardCharsets.UTF_8);
+
+                String[] secciones = contenidoArchivo.split("\n\n");
+                if (secciones.length < 2) {
+                    throw new IllegalArgumentException("El archivo no tiene el formato esperado.");
+                }
+
+                // Extraer firma digital
+                String firmaDigitalHex = secciones[0].replace("FIRMA DIGITAL:\n", "").trim();
+                byte[] firmaDigital = hexABytes(firmaDigitalHex);
+
+                // Extraer mensaje cifrado
+                String mensajeCifradoHex = secciones[1].replace("MENSAJE CIFRADO:\n", "").trim();
+                byte[] mensajeCifrado = hexABytes(mensajeCifradoHex);
+
+                System.out.println("Firma digital: " + firmaDigitalHex);
+                System.out.println("Mensaje cifrado: " + mensajeCifradoHex);
+
+                File archivoLlavePublica = seleccionarArchivo("Selecciona el archivo de la llave pública");
                 
-                File archivoLlavePublica = seleccionarArchivo("Selecciona el archivo de la llave publica");
-               
                 if (archivoLlavePublica != null) {
                     PublicKey llavePublica = cargarLlavePublica(archivoLlavePublica);
-                    /* ------------------- GENERAR EL DIGESTO CON FIRMA DIGITAL Y LLAVE PÚBLICA  ------------------- */
-                    byte[] digestoDescifrado = descifrarRSA(contenidoFirma, llavePublica);
-                    System.out.println("Digesto con SHA-256: " + bytesAHex(digestoDescifrado));
-                    /* Para verificar que los digestos coinciden. Debemos abrir el mensaje original */
-                    // verificarFirmaDigital(mensaje, contenidoFirma, llavePublica);
-                    
-                    File archivoCifrado = seleccionarArchivo("Selecciona el archivo cifrado");
+                    // --------------- DIGESTO DESCIFRADO CON FIRMA DIGITAL Y LLAVE PUBLICA  ---------------
+                    byte[] digestoDescifrado = descifrarRSA(firmaDigital, llavePublica);
+                    System.out.println("Digesto descifrado (SHA-256): " + bytesAHex(digestoDescifrado));
+               
                     File archivoLlaveSecreta = seleccionarArchivo("Selecciona el archivo de la llave secreta");
                     
-                    if (archivoCifrado != null && archivoLlaveSecreta != null) {
-                        byte[] contenido = Files.readAllBytes(archivoCifrado.toPath());
-                        String contenidoCifradoHexStr = new String(contenido, StandardCharsets.UTF_8);
-                        byte[] contenidoCifrado = hexABytes(contenidoCifradoHexStr);
-                        System.out.println("Contenido cifrado: " + contenidoCifradoHexStr);
-                        
+                    if (archivoLlaveSecreta != null) {
                         byte[] llaveSecretaBytes = Files.readAllBytes(archivoLlaveSecreta.toPath());
                         byte[] claveAES = derivarClaveAES(llaveSecretaBytes, 16);
                         SecretKeySpec llaveAES = new SecretKeySpec(claveAES, "AES");
-                        System.out.println(Arrays.toString(claveAES));
                         byte[] vi = Arrays.copyOf(llaveSecretaBytes, 16);
+                        // --------------- MENSAJE DESCIFRADO  ---------------
+                        byte[] mensajeDescifrado = descifrarAES(mensajeCifrado, llaveAES, vi);
+                        byte[] digesto = generarDigesto(mensajeDescifrado, "SHA-256");
+                        System.out.println("Digesto (MENSAJE DESCIFRADO) con SHA-256: " + bytesAHex(digesto));
                         
-                        byte[] mensajeDescifrado = descifrarAES(contenidoCifrado, llaveAES, vi);
+                        if (Arrays.equals(digesto, digestoDescifrado)) {
+                            // Mostrar cuadro de diálogo con el mensaje
+                            JOptionPane.showMessageDialog(
+                                null,
+                                "Se ha verificado:\n- Confidencialidad\n- No repudio\n- Autenticación\n- Integridad",
+                                "Verificación exitosa",
+                                JOptionPane.INFORMATION_MESSAGE
+                            );
+                        } else {
+                            JOptionPane.showMessageDialog(
+                                null,
+                                "Los digestos no coinciden. La verificación falló.",
+                                "Error de verificación",
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                        }
                         
-                        // System.out.println("Contenido descifrado:");
-                        // System.out.println(new String(mensajeDescifrado, StandardCharsets.UTF_8));
-
                         File folder = new File("mensajesDescifrados");
                         if (!folder.exists()) {
                             folder.mkdir();
                         }
-                        
+
                         String filePath = "mensajesDescifrados/MensajeDescifrado_" + user + ".txt";
-                        
-                        String mensajeDescifradoStr = new String(mensajeDescifrado, StandardCharsets.UTF_8);
                         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                            writer.write(mensajeDescifradoStr);
+                            writer.write(new String(mensajeDescifrado, StandardCharsets.UTF_8));
                             System.out.println("El mensaje descifrado se guardó correctamente en: " + filePath);
-                            writer.flush();
                         }
-                    }else {
-                        System.out.println("No se selecciono ningun archivo");
+                    } else {
+                        System.out.println("No se seleccionó el archivo de la llave secreta.");
                     }
-                    
-                }else {
-                    System.out.println("No se selecciono ningun archivo");
+                } else {
+                    System.out.println("No se seleccionó el archivo de la llave pública.");
                 }
-                
-            }else {
-                System.out.println("No se selecciono ningún archivo");
+            } else {
+                System.out.println("No se seleccionó ningún archivo.");
             }
-                
-        }catch (Exception e) {
-            System.err.println("Error durante la ejecucion: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error durante la ejecución: " + e.getMessage());
         }
     }
+
     
     private static File seleccionarArchivo(String titulo) {
         JFileChooser archivo = new JFileChooser();
@@ -93,6 +112,13 @@ public class Descifrado {
             return archivo.getSelectedFile();
         }
         return null;
+    }
+    
+    private static byte[] generarDigesto(byte[] contenidoArchivo, String algoritmo) throws Exception {
+        MessageDigest mensajeDigesto = MessageDigest.getInstance(algoritmo);
+        byte[] digesto = mensajeDigesto.digest(contenidoArchivo);
+        
+        return digesto;
     }
     
     public static void verificarFirmaDigital(byte[] mensajeOriginal, byte[] firmaDigital, PublicKey llavePublica) throws Exception {
