@@ -101,9 +101,19 @@ public class DiffieHellman {
 
     public static BigInteger generarLlaveParcial(BigInteger p, BigInteger g, BigInteger llavePrivada, String nombre) throws IOException {
         /* Archivo con llave parcial */
-        String nombreArchivo = "llaveparcial_" + nombre + ".txt";
         BigInteger llaveParcial = g.modPow(llavePrivada, p);
+        String carpeta = "llavesParciales";
 
+        File directorio = new File(carpeta);
+        if (!directorio.exists()) {
+            if (!directorio.mkdir()) {
+                System.err.println("No se pudo crear la carpeta: " + carpeta);
+                return null;
+            }
+        }
+        
+        String nombreArchivo = carpeta + File.separator + "llaveParcial_" + nombre + ".txt";
+        
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(nombreArchivo))) {
             writer.write(llaveParcial.toString(16));
         }
@@ -122,7 +132,7 @@ public class DiffieHellman {
         }
         
         /* Archivo con llave secreta */
-        String nombreArchivo = carpeta + File.separator + "llaveSecreta" + nombre + ".txt";
+        String nombreArchivo = carpeta + File.separator + "llaveSecreta_" + nombre + ".txt";
         BigInteger llaveSecreta = llaveParcial.modPow(llavePrivada, p);
         byte[] llaveBytes = llaveSecreta.toByteArray();
         byte[] llaveFija = Arrays.copyOf(llaveBytes, 16);

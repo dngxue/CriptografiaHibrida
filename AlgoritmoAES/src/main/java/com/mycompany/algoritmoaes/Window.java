@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class Window extends javax.swing.JFrame {
-    public static String nombreUsuario;
     
     public Window() {
         initComponents();
@@ -85,12 +84,11 @@ public class Window extends javax.swing.JFrame {
                 .addGap(81, 81, 81)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(bntGenerarLlaves, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(btnCifrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnSecretoCompartido, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
-                        .addComponent(btnLlaveParcial, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnGenerarParametro, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnDescifrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(btnCifrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnSecretoCompartido, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                    .addComponent(btnLlaveParcial, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnGenerarParametro, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnDescifrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(89, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -115,78 +113,54 @@ public class Window extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnGenerarParametroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenerarParametroActionPerformed
-        JFrame ventanaInicio = new JFrame("Ingresa tu nombre");
-        
-        ventanaInicio.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ventanaInicio.setSize(300, 200);
-        ventanaInicio.setLocationRelativeTo(null);
-        ventanaInicio.setLayout(new GridBagLayout());
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-
-        JPanel panelInicio = new JPanel();
-        panelInicio.setLayout(new GridLayout(2,1,10,10));
-        JLabel lblInicio = new JLabel("Ingresa tu nombre de usuario:");
-        JTextField campoNombre = new JTextField();
-
-        panelInicio.add(lblInicio);
-        panelInicio.add(campoNombre);
-        
-        JButton btnConectar = new JButton("Conectar");
-        btnConectar.setPreferredSize(new Dimension(100, 40));
-
-        btnConectar.addActionListener(e -> {
-            nombreUsuario = campoNombre.getText().trim();
-            if (!nombreUsuario.isEmpty()) {
-                try {
-                    DiffieHellman.generarParametros(nombreUsuario);
-                    ventanaInicio.setVisible(false);
-                } catch (Exception ex) {
-                    Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                JOptionPane.showMessageDialog(ventanaInicio, "Por favor, ingresa un nombre de usuario válido.");
+        String userInput = JOptionPane.showInputDialog(rootPane, "Ingresar nombre:");
+        if(userInput != null && !userInput.trim().isEmpty()) {
+            try {
+                DiffieHellman.generarParametros(userInput);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
             }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        ventanaInicio.add(panelInicio, gbc);
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        ventanaInicio.add(btnConectar, gbc);
-        ventanaInicio.setVisible(true);
+        }else {
+            JOptionPane.showMessageDialog(rootPane, "No se ingresó un nombre válido", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnGenerarParametroActionPerformed
 
     private void btnSecretoCompartidoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSecretoCompartidoActionPerformed
-        try {
-            BigInteger[] parametros = DiffieHellman.leerParametros();
-            BigInteger p = parametros[0];
-            
-            String titulo = "Seleccionar archivo de llave privada";
-            BigInteger llavePrivada = DiffieHellman.leerLlave(titulo);
-            titulo = "Seleccionar archivo de llave compartida";
-            BigInteger llaveParcial = DiffieHellman.leerLlave(titulo);
-            
-            DiffieHellman.calcularLlaveCompartida(p, llaveParcial, llavePrivada, nombreUsuario);
-        } catch (Exception ex) {
-            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+        String userInput = JOptionPane.showInputDialog(rootPane, "Ingresar nombre:");
+        if(userInput != null && !userInput.trim().isEmpty()) {
+            try {
+                BigInteger[] parametros = DiffieHellman.leerParametros();
+                BigInteger p = parametros[0];
+                
+                String titulo = "Seleccionar archivo de llave privada";
+                BigInteger llavePrivada = DiffieHellman.leerLlave(titulo);
+                titulo = "Seleccionar archivo de llave parcial";
+                BigInteger llaveParcial = DiffieHellman.leerLlave(titulo);
+                
+                DiffieHellman.calcularLlaveCompartida(p, llaveParcial, llavePrivada, userInput);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }else {
+            JOptionPane.showMessageDialog(rootPane, "No se ingresó un nombre válido", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        
     }//GEN-LAST:event_btnSecretoCompartidoActionPerformed
 
     private void btnLlaveParcialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLlaveParcialActionPerformed
-        try {
-            BigInteger[] parametros = DiffieHellman.leerParametros();
-            BigInteger p = parametros[0];
-            BigInteger g = parametros[1];
-            BigInteger llavePrivada = DiffieHellman.leerLlave("Selecciona la llave privada");
-            BigInteger llaveParcial = DiffieHellman.generarLlaveParcial(p, g, llavePrivada, nombreUsuario);
-            
-            System.out.println("Llave parcial: " + llaveParcial);
-        } catch (Exception ex) {
-            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+        String userInput = JOptionPane.showInputDialog(rootPane, "Ingresar nombre:");
+        if(userInput != null && !userInput.trim().isEmpty()) {
+            try {
+                BigInteger[] parametros = DiffieHellman.leerParametros();
+                BigInteger p = parametros[0];
+                BigInteger g = parametros[1];
+                BigInteger llavePrivada = DiffieHellman.leerLlave("Selecciona la llave privada");
+                BigInteger llaveParcial = DiffieHellman.generarLlaveParcial(p, g, llavePrivada, userInput);
+                System.out.println("Llave parcial: " + llaveParcial);
+            } catch (Exception ex) {
+                Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }else {
+            JOptionPane.showMessageDialog(rootPane, "No se ingresó un nombre válido", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnLlaveParcialActionPerformed
 
